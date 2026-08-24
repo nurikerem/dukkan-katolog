@@ -122,7 +122,6 @@
     <script>
         const SUPABASE_URL = "https://iwlysbmcjkhwpxkotnsz.supabase.co";
         const SUPABASE_KEY = "sb_publishable_z7P_NGiXVLcLJxVTzxjiKA_8Su-pt8J"; 
-        const IMGBB_API_KEY = "6d704421b0714d5e2341c2c7b3e256e9"; // Otomatik görsel yükleme servisi
         const ADMIN_PASSWORD = "1234";
 
         let db;
@@ -244,6 +243,25 @@
 
         function closeModal() { document.getElementById('adminModal').style.display = 'none'; }
 
+        function compressAndConvert(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let w = img.width, h = img.height;
+                        if (w > 400) { h = Math.round((h * 400) / w); w = 400; }
+                        canvas.width = w; canvas.height = h;
+                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                        resolve(canvas.toDataURL('image/jpeg', 0.6));
+                    };
+                };
+            });
+        }
+
         async function saveProduct() {
             const id = document.getElementById('editProductId').value;
             const name = document.getElementById('prodName').value;
@@ -257,33 +275,14 @@
                 return;
             }
 
-            saveBtn.innerText = "Görsel Yükleniyor...";
+            saveBtn.innerText = "Kaydediliyor...";
             saveBtn.disabled = true;
 
             let imgUrl = document.getElementById('existingImgUrl').value;
 
-            // Fotoğraf seçildiyse ImgBB servis paneline sorunsuz yüklüyoruz
             if (fileInput.files.length > 0) {
-                const formData = new FormData();
-                formData.append("image", fileInput.files[0]);
-
-                try {
-                    const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-                        method: "POST",
-                        body: formData
-                    });
-                    const resData = await res.json();
-                    if (resData.success) {
-                        imgUrl = resData.data.url;
-                    } else {
-                        alert("Görsel sunucusuna yüklenemedi, varsayılan görsel kullanılacak.");
-                    }
-                } catch (err) {
-                    console.error("Görsel yükleme hatası:", err);
-                }
+                imgUrl = await compressAndConvert(fileInput.files[0]);
             }
-
-            saveBtn.innerText = "Kaydediliyor...";
 
             let dbError;
             if (id) {
@@ -295,7 +294,7 @@
             }
 
             if (dbError) {
-                alert("Veritabanı Kayıt Hatası: " + dbError.message);
+                alert("Veritabanı Hatası: " + dbError.message);
             }
 
             saveBtn.innerText = "Kaydet";
