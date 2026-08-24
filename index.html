@@ -1,409 +1,340 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Butik & Çeyiz Kataloğu</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --primary: #88304e;
-    --primary-dark: #522546;
-    --accent: #e23e57;
-    --bg: #fff5f7;
-    --card-bg: #ffffff;
-    --text: #33222a;
-  }
-  
-  * { box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
-  body { margin: 0; background: var(--bg); color: var(--text); padding-bottom: 90px; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zümrüt İç Giyim & Çeyiz Katalog</title>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f8f9fa; color: #333; padding-bottom: 90px; }
+        
+        header { background: linear-gradient(135deg, #e91e63, #8e24aa); color: white; text-align: center; padding: 25px 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        header h1 { font-size: 24px; margin-bottom: 5px; }
+        header p { font-size: 14px; opacity: 0.9; }
 
-  header { background: var(--primary); color: #fff; padding: 14px 16px; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 15px rgba(136, 48, 78, 0.25); }
-  .header-content { max-width: 900px; margin: auto; display: flex; flex-direction: column; gap: 10px; }
-  .top-bar { display: flex; justify-content: space-between; align-items: center; }
-  h1 { margin: 0; font-size: 19px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: #fff; }
-  
-  .header-actions { display: flex; gap: 8px; }
-  .btn-head { background: var(--accent); color: #fff; border: 0; border-radius: 10px; padding: 8px 12px; font-weight: 700; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 5px; }
-  .btn-head.secondary { background: rgba(255,255,255,0.2); }
+        .search-container { max-width: 800px; margin: 15px auto; padding: 0 15px; }
+        .search-input { width: 100%; padding: 12px 18px; border: 2px solid #ddd; border-radius: 25px; font-size: 15px; outline: none; transition: 0.3s; }
+        .search-input:focus { border-color: #e91e63; box-shadow: 0 0 8px rgba(233,30,99,0.2); }
 
-  .search-row { display: flex; gap: 8px; }
-  .search-box { flex: 1; }
-  .search-box input { width: 100%; padding: 10px 14px; border-radius: 10px; border: 0; font-size: 13px; outline: none; background: var(--primary-dark); color: #fff; }
-  .search-box input::placeholder { color: #f4c7d0; }
-  .sort-select { background: var(--primary-dark); color: #fff; border: 0; border-radius: 10px; padding: 0 10px; font-size: 12px; font-weight: 600; outline: none; cursor: pointer; }
+        .categories { display: flex; overflow-x: auto; padding: 5px 15px 15px 15px; gap: 10px; justify-content: start; max-width: 800px; margin: 0 auto; scrollbar-width: none; }
+        .categories::-webkit-scrollbar { display: none; }
+        .cat-btn { padding: 8px 16px; background-color: white; border: 1px solid #ddd; border-radius: 20px; font-size: 13px; font-weight: 600; white-space: nowrap; cursor: pointer; transition: 0.2s; color: #555; }
+        .cat-btn.active, .cat-btn:hover { background-color: #e91e63; color: white; border-color: #e91e63; }
 
-  .filters { display: flex; gap: 8px; padding: 12px 16px; overflow-x: auto; background: #fff; border-bottom: 1px solid #f3d8e0; scrollbar-width: none; }
-  .filters::-webkit-scrollbar { display: none; }
-  .filter-btn { padding: 7px 15px; border: 1px solid #f3d8e0; background: #fff0f3; border-radius: 20px; font-weight: 600; font-size: 12px; color: var(--primary); white-space: nowrap; cursor: pointer; }
-  .filter-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+        .container { max-width: 800px; margin: 0 auto; padding: 0 15px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
 
-  main { max-width: 900px; margin: auto; padding: 16px; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; }
+        .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); transition: 0.3s; position: relative; display: flex; flex-direction: column; justify-content: space-between; }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .card img { width: 100%; height: 160px; object-fit: cover; background-color: #eee; }
+        .card-body { padding: 12px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .card-title { font-size: 14px; font-weight: 600; color: #222; margin-bottom: 6px; }
+        .card-price { font-size: 16px; font-weight: bold; color: #e91e63; margin-bottom: 10px; }
+        
+        .btn-add { background-color: #25d366; color: white; border: none; width: 100%; padding: 8px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        .btn-add:hover { background-color: #1ebd59; }
 
-  .card { background: var(--card-bg); border-radius: 16px; overflow: hidden; border: 1px solid #f8e1e7; display: flex; flex-direction: column; box-shadow: 0 4px 12px rgba(136, 48, 78, 0.06); position: relative; }
-  .img-box { width: 100%; height: 170px; background: #fce4ec; position: relative; overflow: hidden; }
-  .img-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  
-  .cat-badge { position: absolute; top: 8px; left: 8px; background: rgba(136, 48, 78, 0.85); backdrop-filter: blur(4px); color: #fff; font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 6px; z-index: 2; }
-  
-  .card-admin-actions { position: absolute; top: 8px; right: 8px; display: flex; gap: 4px; z-index: 2; }
-  .action-btn { width: 28px; height: 28px; border-radius: 8px; background: rgba(255, 255, 255, 0.9); border: 0; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
+        /* Admin Kontrolleri */
+        .admin-controls { margin-top: 8px; display: flex; gap: 5px; }
+        .btn-edit { background: #ff9800; color: white; border: none; padding: 5px; border-radius: 4px; font-size: 11px; cursor: pointer; flex: 1; }
+        .btn-del { background: #f44336; color: white; border: none; padding: 5px; border-radius: 4px; font-size: 11px; cursor: pointer; flex: 1; }
 
-  .card-info { padding: 12px; display: flex; flex-direction: column; flex: 1; justify-content: space-between; gap: 8px; }
-  .product-name { font-size: 13px; font-weight: 700; color: var(--text); line-height: 1.3; margin: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-  .product-price { font-size: 16px; font-weight: 800; color: var(--accent); }
+        /* Sepet Bar */
+        .cart-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #eee; box-shadow: 0 -4px 15px rgba(0,0,0,0.1); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; max-width: 800px; margin: 0 auto; border-radius: 15px 15px 0 0; z-index: 100; }
+        .cart-info { font-size: 14px; font-weight: 600; }
+        .cart-total { color: #e91e63; font-size: 16px; font-weight: bold; }
+        .btn-order { background-color: #25d366; color: white; border: none; padding: 10px 20px; border-radius: 25px; font-weight: bold; font-size: 14px; cursor: pointer; text-decoration: none; display: flex; align-items: center; gap: 8px; }
 
-  .btn-group { display: flex; flex-direction: column; gap: 6px; }
-  .add-cart-btn { background: var(--primary); color: #fff; border: 0; border-radius: 8px; padding: 8px; font-size: 11px; font-weight: 700; cursor: pointer; width: 100%; }
-  .wa-btn { background: #25d366; color: #fff; border: 0; border-radius: 8px; padding: 8px; font-size: 11px; font-weight: 700; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; text-decoration: none; }
+        /* Admin Giriş & Panel */
+        .admin-toggle-btn { position: fixed; bottom: 75px; right: 15px; background: #333; color: white; border: none; padding: 8px 14px; border-radius: 20px; font-size: 12px; cursor: pointer; z-index: 101; opacity: 0.8; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; }
+        .modal-content h3 { margin-bottom: 15px; color: #333; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 12px; margin-bottom: 4px; font-weight: 600; }
+        .form-group input, .form-group select { width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px; }
+        .btn-save { background: #e91e63; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; }
+        .btn-cancel { background: #ccc; color: #333; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
 
-  /* Alt Sepet Bar */
-  .cart-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; padding: 12px 16px; border-top: 1px solid #f3d8e0; box-shadow: 0 -4px 15px rgba(0,0,0,0.08); display: flex; justify-content: space-between; align-items: center; z-index: 99; max-width: 900px; margin: auto; }
-  .cart-info { display: flex; flex-direction: column; }
-  .cart-count { font-size: 12px; font-weight: 600; color: #777; }
-  .cart-total { font-size: 17px; font-weight: 800; color: var(--accent); }
-  .cart-btn-main { background: #25d366; color: #fff; border: 0; border-radius: 10px; padding: 10px 18px; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-
-  .empty { grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: var(--primary); font-size: 14px; font-weight: 600; }
-
-  /* Modal */
-  .modal { display: none; position: fixed; inset: 0; background: rgba(51, 34, 42, 0.6); backdrop-filter: blur(4px); align-items: center; justify-content: center; padding: 16px; z-index: 1000; }
-  .modal.show { display: flex; }
-  .modal-box { background: #fff; border-radius: 20px; padding: 20px; width: min(420px, 100%); border: 1px solid #f8e1e7; max-height: 90vh; overflow-y: auto; }
-  .modal-box h2 { margin: 0 0 14px 0; font-size: 17px; font-weight: 800; color: var(--primary); }
-  .modal-box label { font-size: 11px; font-weight: 700; color: var(--primary); margin-bottom: 4px; display: block; }
-  .modal-box input, .modal-box select { width: 100%; padding: 10px 12px; margin-bottom: 10px; border: 1px solid #f3d8e0; border-radius: 10px; font-size: 13px; outline: none; background: #fff0f3; }
-  .preview-img { width: 100%; height: 130px; object-fit: contain; background: #fff0f3; border-radius: 10px; margin-bottom: 10px; display: none; border: 1px dashed #f3d8e0; }
-  .btns { display: flex; gap: 8px; margin-top: 6px; }
-  .btns button { flex: 1; padding: 11px; border: 0; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 13px; }
-  .save-btn { background: var(--primary); color: #fff; }
-  .cancel-btn { background: #fff0f3; color: var(--primary); }
-
-  /* Sepet Detay Modalı */
-  .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee; }
-  .cart-item-title { font-size: 13px; font-weight: 600; flex: 1; }
-  .cart-item-price { font-size: 13px; font-weight: 700; color: var(--accent); margin: 0 10px; }
-  .remove-item { background: #ff4d4d; color: #fff; border: 0; border-radius: 6px; padding: 4px 8px; font-size: 11px; cursor: pointer; }
-</style>
+        .empty-state { text-align: center; padding: 40px 20px; color: #777; width: 100%; grid-column: 1 / -1; }
+    </style>
 </head>
 <body>
 
-<header>
-  <div class="header-content">
-    <div class="top-bar">
-      <h1>🌸 Dükkan Katalog</h1>
-      <div class="header-actions">
-        <button class="btn-head" id="openAdd">＋ Ürün Ekle</button>
-      </div>
+    <header>
+        <h1>Zümrüt İç Giyim & Çeyiz</h1>
+        <p>Sultanbeyli Merkez | Online Ürün Kataloğu</p>
+    </header>
+
+    <div class="search-container">
+        <input type="text" id="searchInput" class="search-input" placeholder="Ürün veya kategori ara..." onkeyup="filterProducts()">
     </div>
-    <div class="search-row">
-      <div class="search-box">
-        <input type="text" id="search" placeholder="Ürün adı ara...">
-      </div>
-      <select id="sortSelect" class="sort-select">
-        <option value="default">Sıralama</option>
-        <option value="low">Fiyat: Düşükten Yükseğe</option>
-        <option value="high">Fiyat: Yüksekten Düşüğe</option>
-      </select>
+
+    <div class="categories" id="categoryContainer">
+        <button class="cat-btn active" onclick="setCategory('Hepsi')">Hepsi</button>
+        <button class="cat-btn" onclick="setCategory('İç Giyim')">İç Giyim</button>
+        <button class="cat-btn" onclick="setCategory('Çeyiz')">Çeyiz</button>
+        <button class="cat-btn" onclick="setCategory('Pijama & Gecelik')">Pijama & Gecelik</button>
+        <button class="cat-btn" onclick="setCategory('Aksesuar & Çorap')">Aksesuar & Çorap</button>
     </div>
-  </div>
-</header>
 
-<nav class="filters">
-  <button class="filter-btn active" onclick="setCategory('Tümü', this)">Tümü</button>
-  <button class="filter-btn" onclick="setCategory('İç Giyim', this)">İç Giyim</button>
-  <button class="filter-btn" onclick="setCategory('Çeyiz', this)">Çeyiz</button>
-  <button class="filter-btn" onclick="setCategory('Kapı Ürünleri', this)">Kapı Ürünleri</button>
-</nav>
-
-<main>
-  <div class="grid" id="grid"></div>
-</main>
-
-<div class="cart-bar" id="cartBar" style="display:none;">
-  <div class="cart-info">
-    <span class="cart-count" id="cartCount">0 Ürün Seçildi</span>
-    <span class="cart-total" id="cartTotal">0 TL</span>
-  </div>
-  <button class="cart-btn-main" onclick="openCartModal()">💬 WhatsApp Sipariş Ver</button>
-</div>
-
-<!-- Ürün Ekle/Düzenle Modal -->
-<div class="modal" id="modal">
-  <div class="modal-box">
-    <h2 id="modalTitle">Yeni Ürün Ekle</h2>
-    <label>Ürün Fotoğrafı</label>
-    <input type="file" id="photo" accept="image/*">
-    <img id="preview" class="preview-img">
-    <label>Ürün Adı</label>
-    <input type="text" id="name" placeholder="Örn: Saten Pijama Takımı">
-    <label>Fiyatı (TL)</label>
-    <input type="number" id="price" placeholder="Örn: 450">
-    <label>Kategori</label>
-    <select id="category">
-      <option value="İç Giyim">İç Giyim</option>
-      <option value="Çeyiz">Çeyiz</option>
-      <option value="Kapı Ürünleri">Kapı Ürünleri</option>
-    </select>
-    <div class="btns">
-      <button class="cancel-btn" id="cancel">Vazgeç</button>
-      <button class="save-btn" id="save">Kaydet</button>
+    <div class="container">
+        <div class="grid" id="productGrid">
+            <div class="empty-state">Ürünler yükleniyor...</div>
+        </div>
     </div>
-  </div>
-</div>
 
-<!-- Sepet İnceleme Modal -->
-<div class="modal" id="cartModal">
-  <div class="modal-box">
-    <h2>Sipariş Listesi</h2>
-    <div id="cartList"></div>
-    <div style="margin-top: 15px; font-weight: 800; font-size: 16px; text-align: right; color: var(--accent);" id="cartModalTotal"></div>
-    <div class="btns">
-      <button class="cancel-btn" onclick="closeCartModal()">Kapat</button>
-      <button class="save-btn" style="background:#25d366;" onclick="sendCartWA()">WhatsApp'a Gönder</button>
+    <!-- Sepet Alt Barı -->
+    <div class="cart-bar" id="cartBar" style="display: none;">
+        <div class="cart-info">
+            <span id="cartCount">0</span> Ürün | <span class="cart-total" id="cartTotal">0 TL</span>
+        </div>
+        <button class="btn-order" onclick="sendWhatsAppOrder()">
+            📱 WhatsApp ile Sipariş Ver
+        </button>
     </div>
-  </div>
-</div>
 
-<script>
-  const initialProducts = [
-    { id: 1, name: 'Saten Pijama Takımı', price: 450, cat: 'İç Giyim', img: 'https://images.unsplash.com/photo-1583743814966-8936f37f4678?auto=format&fit=crop&w=500&q=80' },
-    { id: 2, name: 'Dantelli Nevresim Takımı', price: 850, cat: 'Çeyiz', img: 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=500&q=80' },
-    { id: 3, name: 'Süslemeli Kapı Süsü', price: 250, cat: 'Kapı Ürünleri', img: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=500&q=80' }
-  ];
+    <!-- Yönetici Paneli Butonu -->
+    <button class="admin-toggle-btn" onclick="toggleAdminPanel()">🔑 Yönetici / Ürün Ekle</button>
 
-  let products = JSON.parse(localStorage.getItem('my_dukkan_products')) || initialProducts;
-  let cart = [];
-  let currentCat = 'Tümü';
-  let editId = null;
+    <!-- Ürün Ekleme / Düzenleme Modalı -->
+    <div class="modal" id="adminModal">
+        <div class="modal-content">
+            <h3 id="modalTitle">Yeni Ürün Ekle</h3>
+            <input type="hidden" id="editProductId">
+            <div class="form-group">
+                <label>Ürün Adı</label>
+                <input type="text" id="prodName" placeholder="Örn: Saten Gecelik Takımı">
+            </div>
+            <div class="form-group">
+                <label>Fiyat (TL)</label>
+                <input type="number" id="prodPrice" placeholder="Örn: 450">
+            </div>
+            <div class="form-group">
+                <label>Kategori</label>
+                <select id="prodCat">
+                    <option value="İç Giyim">İç Giyim</option>
+                    <option value="Çeyiz">Çeyiz</option>
+                    <option value="Pijama & Gecelik">Pijama & Gecelik</option>
+                    <option value="Aksesuar & Çorap">Aksesuar & Çorap</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Görsel Bağlantısı (URL)</label>
+                <input type="text" id="prodImg" placeholder="https://... (boş kalabilir)">
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeModal()">İptal</button>
+                <button class="btn-save" onclick="saveProduct()">Kaydet</button>
+            </div>
+        </div>
+    </div>
 
-  function saveData() {
-    try {
-      localStorage.setItem('my_dukkan_products', JSON.stringify(products));
-      render();
-    } catch (e) {
-      alert('Fotoğraf boyutu büyük olduğu için kaydedilemedi. Lütfen daha küçük resim yükleyin.');
-    }
-  }
+    <script>
+        // Supabase Bağlantı Bilgileri
+        const SUPABASE_URL = "https://iwlysbmcjkhwpxkotnsz.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_z7P_NGiXVLcLJxVTzxjiKA_8Su-pt8J"; // Supabase'deki Publishable Key'i buraya yapıştır
+        const ADMIN_PASSWORD = "1234"; // Ailenle kullanacağın yönetici şifresi
 
-  function compressImg(file) {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          const max = 300, scale = Math.min(1, max / Math.max(img.width, img.height));
-          const canvas = document.createElement('canvas');
-          canvas.width = Math.round(img.width * scale);
-          canvas.height = Math.round(img.height * scale);
-          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-          resolve(canvas.toDataURL('image/jpeg', 0.5));
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let products = [];
+        let cart = [];
+        let activeCategory = 'Hepsi';
+        let isAdmin = false;
+
+        // Sayfa yüklendiğinde verileri çek
+        window.onload = function() {
+            fetchProducts();
         };
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    });
-  }
 
-  function addToCart(id) {
-    const p = products.find(x => x.id === id);
-    if (p) {
-      cart.push(p);
-      updateCartUI();
-    }
-  }
+        // Supabase'den ürünleri canlı çekme
+        async function fetchProducts() {
+            const { data, error } = await supabase
+                .from('products')
+                .select('*')
+                .order('id', { ascending: false });
 
-  function removeFromCart(index) {
-    cart.splice(index, 1);
-    updateCartUI();
-    renderCartList();
-  }
+            if (error) {
+                console.error('Hata:', error);
+                document.getElementById('productGrid').innerHTML = '<div class="empty-state">Ürünler yüklenirken bir hata oluştu.</div>';
+            } else {
+                products = data || [];
+                renderProducts();
+            }
+        }
 
-  function updateCartUI() {
-    const cartBar = document.getElementById('cartBar');
-    if (cart.length > 0) {
-      cartBar.style.display = 'flex';
-      const total = cart.reduce((sum, item) => sum + Number(item.price), 0);
-      document.getElementById('cartCount').textContent = `${cart.length} Ürün Seçildi`;
-      document.getElementById('cartTotal').textContent = `${total} TL`;
-    } else {
-      cartBar.style.display = 'none';
-    }
-  }
+        // Ürünleri Listeleme
+        function renderProducts() {
+            const grid = document.getElementById('productGrid');
+            const searchVal = document.getElementById('searchInput').value.toLowerCase();
 
-  function openCartModal() {
-    renderCartList();
-    document.getElementById('cartModal').classList.add('show');
-  }
+            const filtered = products.filter(p => {
+                const matchesCat = activeCategory === 'Hepsi' || p.cat === activeCategory;
+                const matchesSearch = p.name.toLowerCase().includes(searchVal) || p.cat.toLowerCase().includes(searchVal);
+                return matchesCat && matchesSearch;
+            });
 
-  function closeCartModal() {
-    document.getElementById('cartModal').classList.remove('show');
-  }
+            if (filtered.length === 0) {
+                grid.innerHTML = '<div class="empty-state">Aradığınız kriterlere uygun ürün bulunamadı.</div>';
+                return;
+            }
 
-  function renderCartList() {
-    const list = document.getElementById('cartList');
-    if (cart.length === 0) {
-      list.innerHTML = '<p>Sepetiniz boş.</p>';
-      document.getElementById('cartModalTotal').textContent = '';
-      return;
-    }
-    const total = cart.reduce((sum, item) => sum + Number(item.price), 0);
-    list.innerHTML = cart.map((item, index) => `
-      <div class="cart-item">
-        <span class="cart-item-title">${item.name}</span>
-        <span class="cart-item-price">${item.price} TL</span>
-        <button class="remove-item" onclick="removeFromCart(${index})">Sil</button>
-      </div>
-    `).join('');
-    document.getElementById('cartModalTotal').textContent = `Toplam: ${total} TL`;
-  }
+            grid.innerHTML = filtered.map(p => `
+                <div class="card">
+                    <img src="${p.img || 'https://via.placeholder.com/300x300?text=G%C3%B6rsel+Yok'}" alt="${p.name}">
+                    <div class="card-body">
+                        <div>
+                            <div class="card-title">${p.name}</div>
+                            <div class="card-price">${p.price} TL</div>
+                        </div>
+                        <button class="btn-add" onclick="addToCart(${p.id})">🛒 Sepete Ekle</button>
+                        ${isAdmin ? `
+                            <div class="admin-controls">
+                                <button class="btn-edit" onclick="editProduct(${p.id})">✏️ Düzenle</button>
+                                <button class="btn-del" onclick="deleteProduct(${p.id})">🗑️ Sil</button>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
 
-  function sendCartWA() {
-    if (cart.length === 0) return;
-    let text = "Merhaba, sipariş vermek istediğim ürünler:\n\n";
-    cart.forEach((item, i) => {
-      text += `${i + 1}. ${item.name} - ${item.price} TL\n`;
-    });
-    const total = cart.reduce((sum, item) => sum + Number(item.price), 0);
-    text += `\n*Toplam Tutar: ${total} TL*`;
-    
-    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
-  }
+        // Kategori Değiştirme
+        function setCategory(cat) {
+            activeCategory = cat;
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.innerText === cat);
+            });
+            renderProducts();
+        }
 
-  function sendSingleWA(name, price) {
-    const txt = encodeURIComponent(`Merhaba, ${name} ürünü hakkında bilgi almak istiyorum. (Fiyat: ${price} TL)`);
-    window.open(`https://api.whatsapp.com/send?text=${txt}`, '_blank');
-  }
+        function filterProducts() {
+            renderProducts();
+        }
 
-  function render() {
-    const grid = document.getElementById('grid');
-    const searchVal = document.getElementById('search').value.toLowerCase();
-    const sortVal = document.getElementById('sortSelect').value;
+        // Sepet İşlemleri
+        function addToCart(id) {
+            const prod = products.find(p => p.id === id);
+            if (prod) {
+                cart.push(prod);
+                updateCartUI();
+            }
+        }
 
-    let filtered = products.filter(p => {
-      const matchCat = (currentCat === 'Tümü' || p.cat === currentCat);
-      const matchSearch = p.name && p.name.toLowerCase().includes(searchVal);
-      return matchCat && matchSearch;
-    });
+        function updateCartUI() {
+            const cartBar = document.getElementById('cartBar');
+            if (cart.length > 0) {
+                cartBar.style.display = 'flex';
+                document.getElementById('cartCount').innerText = cart.length;
+                const total = cart.reduce((sum, item) => sum + Number(item.price), 0);
+                document.getElementById('cartTotal').innerText = total + ' TL';
+            } else {
+                cartBar.style.display = 'none';
+            }
+        }
 
-    if (sortVal === 'low') filtered.sort((a, b) => Number(a.price) - Number(b.price));
-    else if (sortVal === 'high') filtered.sort((a, b) => Number(b.price) - Number(a.price));
+        function sendWhatsAppOrder() {
+            if (cart.length === 0) return;
+            let text = "Merhaba, katalog sitenizden şu ürünleri sipariş vermek istiyorum:\n\n";
+            let total = 0;
+            cart.forEach((item, idx) => {
+                text += `${idx + 1}. ${item.name} - ${item.price} TL\n`;
+                total += Number(item.price);
+            });
+            text += `\n*Toplam Tutar:* ${total} TL`;
+            
+            // Dükkan WhatsApp Numarası (Gerekirse değiştirebilirsin)
+            const phone = "905000000000"; 
+            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank');
+        }
 
-    if (filtered.length === 0) {
-      grid.innerHTML = `<div class="empty">Ürün bulunamadı.</div>`;
-      return;
-    }
+        // Yönetici Panel İşlemleri
+        function toggleAdminPanel() {
+            if (!isAdmin) {
+                const pass = prompt("Yönetici Şifresini Giriniz:");
+                if (pass === ADMIN_PASSWORD) {
+                    isAdmin = true;
+                    alert("Yönetici modu aktifleşti! Artık ürün ekleyebilir, silebilir ve fiyat değiştirebilirsiniz.");
+                    openModal();
+                } else if (pass !== null) {
+                    alert("Hatalı şifre!");
+                }
+            } else {
+                openModal();
+            }
+        }
 
-    grid.innerHTML = filtered.map(p => `
-      <div class="card">
-        <div class="img-box">
-          <span class="cat-badge">${p.cat}</span>
-          <div class="card-admin-actions">
-            <button class="action-btn" onclick="editProduct(${p.id})">✏️</button>
-            <button class="action-btn" onclick="deleteProduct(${p.id})">🗑️</button>
-          </div>
-          <img src="${p.img}" alt="${p.name}" loading="lazy">
-        </div>
-        <div class="card-info">
-          <div>
-            <p class="product-name">${p.name}</p>
-            <div class="product-price">${p.price} TL</div>
-          </div>
-          <div class="btn-group">
-            <button class="add-cart-btn" onclick="addToCart(${p.id})">➕ Sepete Ekle</button>
-            <button class="wa-btn" onclick="sendSingleWA('${p.name}', ${p.price})">💬 WhatsApp</button>
-          </div>
-        </div>
-      </div>
-    `).join('');
-  }
+        function openModal() {
+            document.getElementById('modalTitle').innerText = "Yeni Ürün Ekle";
+            document.getElementById('editProductId').value = "";
+            document.getElementById('prodName').value = "";
+            document.getElementById('prodPrice').value = "";
+            document.getElementById('prodImg').value = "";
+            document.getElementById('adminModal').style.display = 'flex';
+        }
 
-  function setCategory(catName, btn) {
-    currentCat = catName;
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    render();
-  }
+        function closeModal() {
+            document.getElementById('adminModal').style.display = 'none';
+        }
 
-  function deleteProduct(id) {
-    if (confirm('Bu ürünü silmek istediğinize emin misiniz?')) {
-      products = products.filter(p => p.id !== id);
-      saveData();
-    }
-  }
+        async function saveProduct() {
+            const id = document.getElementById('editProductId').value;
+            const name = document.getElementById('prodName').value;
+            const price = parseFloat(document.getElementById('prodPrice').value);
+            const cat = document.getElementById('prodCat').value;
+            const img = document.getElementById('prodImg').value;
 
-  function editProduct(id) {
-    const p = products.find(x => x.id === id);
-    if (!p) return;
-    editId = id;
-    document.getElementById('modalTitle').textContent = 'Ürün Düzenle';
-    document.getElementById('name').value = p.name;
-    document.getElementById('price').value = p.price;
-    document.getElementById('category').value = p.cat;
-    
-    const preview = document.getElementById('preview');
-    preview.src = p.img;
-    preview.style.display = 'block';
-    document.getElementById('modal').classList.add('show');
-  }
+            if (!name || isNaN(price)) {
+                alert("Lütfen geçerli bir ürün adı ve fiyatı giriniz.");
+                return;
+            }
 
-  const modal = document.getElementById('modal');
-  const photoInput = document.getElementById('photo');
-  const previewImg = document.getElementById('preview');
+            if (id) {
+                // Güncelleme
+                const { error } = await supabase
+                    .from('products')
+                    .update({ name, price, cat, img })
+                    .eq('id', id);
+                if (error) alert("Güncelleme hatası: " + error.message);
+            } else {
+                // Yeni Ekleme
+                const { error } = await supabase
+                    .from('products')
+                    .insert([{ name, price, cat, img }]);
+                if (error) alert("Ekleme hatası: " + error.message);
+            }
 
-  document.getElementById('openAdd').onclick = () => {
-    editId = null;
-    document.getElementById('modalTitle').textContent = 'Yeni Ürün Ekle';
-    document.getElementById('name').value = '';
-    document.getElementById('price').value = '';
-    photoInput.value = '';
-    previewImg.src = '';
-    previewImg.style.display = 'none';
-    modal.classList.add('show');
-  };
+            closeModal();
+            fetchProducts();
+        }
 
-  document.getElementById('cancel').onclick = () => modal.classList.remove('show');
+        function editProduct(id) {
+            const prod = products.find(p => p.id === id);
+            if (prod) {
+                document.getElementById('modalTitle').innerText = "Ürünü Düzenle";
+                document.getElementById('editProductId').value = prod.id;
+                document.getElementById('prodName').value = prod.name;
+                document.getElementById('prodPrice').value = prod.price;
+                document.getElementById('prodCat').value = prod.cat;
+                document.getElementById('prodImg').value = prod.img || "";
+                document.getElementById('adminModal').style.display = 'flex';
+            }
+        }
 
-  photoInput.onchange = async () => {
-    if (photoInput.files[0]) {
-      previewImg.src = await compressImg(photoInput.files[0]);
-      previewImg.style.display = 'block';
-    }
-  };
-
-  document.getElementById('save').onclick = async () => {
-    const name = document.getElementById('name').value.trim();
-    const price = document.getElementById('price').value.trim();
-    const cat = document.getElementById('category').value;
-    const file = photoInput.files[0];
-
-    if (!name || !price) {
-      alert('Lütfen ürün adını ve fiyatını doldurun.');
-      return;
-    }
-
-    let imgSrc = previewImg.src;
-    if (file) imgSrc = await compressImg(file);
-    if (!imgSrc || previewImg.style.display === 'none') {
-      imgSrc = 'https://images.unsplash.com/photo-1583743814966-8936f37f4678?auto=format&fit=crop&w=500&q=80';
-    }
-
-    if (editId) {
-      const idx = products.findIndex(p => p.id === editId);
-      products[idx] = { id: editId, name, price: Number(price), cat, img: imgSrc };
-    } else {
-      products.push({ id: Date.now(), name, price: Number(price), cat, img: imgSrc });
-    }
-
-    saveData();
-    modal.classList.remove('show');
-  };
-
-  document.getElementById('search').oninput = render;
-  document.getElementById('sortSelect').onchange = render;
-
-  render();
-</script>
+        async function deleteProduct(id) {
+            if (confirm("Bu ürünü silmek istediğinize emin misiniz?")) {
+                const { error } = await supabase
+                    .from('products')
+                    .delete()
+                    .eq('id', id);
+                if (error) alert("Silme hatası: " + error.message);
+                else fetchProducts();
+            }
+        }
+    </script>
 </body>
 </html>
