@@ -122,6 +122,7 @@
     <script>
         const SUPABASE_URL = "https://iwlysbmcjkhwpxkotnsz.supabase.co";
         const SUPABASE_KEY = "sb_publishable_z7P_NGiXVLcLJxVTzxjiKA_8Su-pt8J"; 
+        const IMGBB_API_KEY = "6d704421b0714d5e2341c2c7b3e256e9"; // Otomatik görsel yükleme servisi
         const ADMIN_PASSWORD = "1234";
 
         let db;
@@ -256,27 +257,34 @@
                 return;
             }
 
-            saveBtn.innerText = "Yükleniyor...";
+            saveBtn.innerText = "Görsel Yükleniyor...";
             saveBtn.disabled = true;
 
             let imgUrl = document.getElementById('existingImgUrl').value;
 
+            // Fotoğraf seçildiyse ImgBB servis paneline sorunsuz yüklüyoruz
             if (fileInput.files.length > 0) {
-                const file = fileInput.files[0];
-                const reader = new FileReader();
-                
-                reader.onloadend = async function() {
-                    imgUrl = reader.result;
-                    await finishSave(id, name, price, cat, imgUrl, saveBtn);
-                };
-                
-                reader.readAsDataURL(file);
-            } else {
-                await finishSave(id, name, price, cat, imgUrl, saveBtn);
-            }
-        }
+                const formData = new FormData();
+                formData.append("image", fileInput.files[0]);
 
-        async function finishSave(id, name, price, cat, imgUrl, saveBtn) {
+                try {
+                    const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+                        method: "POST",
+                        body: formData
+                    });
+                    const resData = await res.json();
+                    if (resData.success) {
+                        imgUrl = resData.data.url;
+                    } else {
+                        alert("Görsel sunucusuna yüklenemedi, varsayılan görsel kullanılacak.");
+                    }
+                } catch (err) {
+                    console.error("Görsel yükleme hatası:", err);
+                }
+            }
+
+            saveBtn.innerText = "Kaydediliyor...";
+
             let dbError;
             if (id) {
                 const { error } = await db.from('products').update({ name, price, cat, img: imgUrl }).eq('id', id);
