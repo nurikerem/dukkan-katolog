@@ -251,7 +251,7 @@
             const saveBtn = document.getElementById('saveBtn');
 
             if (!name || isNaN(price)) {
-                alert("Ürün adı ve fiyat girmelisiniz.");
+                alert("Lütfen ürün adı ve geçerli bir fiyat girin.");
                 return;
             }
 
@@ -260,31 +260,40 @@
 
             let imgUrl = document.getElementById('existingImgUrl').value;
 
-            // Fotoğraf Seçilmişse Supabase Storage'a Yükle
             if (fileInput.files.length > 0) {
                 const file = fileInput.files[0];
-                const fileExt = file.name.split('.').pop();
-                const fileName = `${Date.now()}.${fileExt}`;
+                const cleanFileName = `${Date.now()}_img.png`;
 
                 const { data: uploadData, error: uploadError } = await db.storage
                     .from('product-images')
-                    .upload(fileName, file);
+                    .upload(cleanFileName, file, { 
+                        cacheControl: '3600', 
+                        upsert: true,
+                        contentType: file.type || 'image/png'
+                    });
 
                 if (uploadError) {
-                    alert("Fotoğraf yükleme hatası: " + uploadError.message);
+                    alert("Görsel Yükleme Hatası: " + uploadError.message);
                     saveBtn.innerText = "Kaydet";
                     saveBtn.disabled = false;
                     return;
                 }
 
-                const { data: urlData } = db.storage.from('product-images').getPublicUrl(fileName);
+                const { data: urlData } = db.storage.from('product-images').getPublicUrl(cleanFileName);
                 imgUrl = urlData.publicUrl;
             }
 
+            let dbError;
             if (id) {
-                await db.from('products').update({ name, price, cat, img: imgUrl }).eq('id', id);
+                const { error } = await db.from('products').update({ name, price, cat, img: imgUrl }).eq('id', id);
+                dbError = error;
             } else {
-                await db.from('products').insert([{ name, price, cat, img: imgUrl }]);
+                const { error } = await db.from('products').insert([{ name, price, cat, img: imgUrl }]);
+                dbError = error;
+            }
+
+            if (dbError) {
+                alert("Veritabanı Kayıt Hatası: " + dbError.message);
             }
 
             saveBtn.innerText = "Kaydet";
@@ -292,27 +301,3 @@
             closeModal();
             fetchProducts();
         }
-
-        function editProduct(id) {
-            const prod = products.find(p => p.id === id);
-            if (prod) {
-                document.getElementById('modalTitle').innerText = "Ürünü Düzenle";
-                document.getElementById('editProductId').value = prod.id;
-                document.getElementById('existingImgUrl').value = prod.img || "";
-                document.getElementById('prodName').value = prod.name;
-                document.getElementById('prodPrice').value = prod.price;
-                document.getElementById('prodCat').value = prod.cat;
-                document.getElementById('prodFile').value = "";
-                document.getElementById('adminModal').style.display = 'flex';
-            }
-        }
-
-        async function deleteProduct(id) {
-            if (confirm("Bu ürünü silmek istiyor musunuz?")) {
-                await db.from('products').delete().eq('id', id);
-                fetchProducts();
-            }
-        }
-    </script>
-</body>
-</html>
