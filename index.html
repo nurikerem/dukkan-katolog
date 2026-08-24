@@ -120,6 +120,7 @@
     </div>
   </div>
 </div>
+
 <script>
   const initialProducts = [
     { id: 1, name: 'Saten Pijama Takımı', price: 450, cat: 'İç Giyim', img: 'https://images.unsplash.com/photo-1583743814966-8936f37f4678?auto=format&fit=crop&w=500&q=80' },
@@ -262,7 +263,7 @@
   };
 
   document.getElementById('save').onclick = async () => {
-    const name = document.getElementById('name'].value.trim();
+    const name = document.getElementById('name').value.trim();
     const price = document.getElementById('price').value.trim();
     const cat = document.getElementById('category').value;
     const file = photoInput.files[0];
@@ -277,7 +278,6 @@
       imgSrc = await compressImg(file);
     }
 
-    // Eğer yeni ürün ekleniyorsa ve hiç fotoğraf seçilmediyse varsayılan bir görsel atar tıkanmayı önler
     if (!imgSrc || previewImg.style.display === 'none') {
       imgSrc = 'https://images.unsplash.com/photo-1583743814966-8936f37f4678?auto=format&fit=crop&w=500&q=80';
     }
@@ -297,4 +297,6 @@
   document.getElementById('sortSelect').onchange = render;
 
   render();
-</script>  
+</script>
+</body>
+</html>
