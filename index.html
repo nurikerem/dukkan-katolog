@@ -89,6 +89,7 @@
         <div class="modal-content">
             <h3 id="modalTitle">Yeni Ürün Ekle</h3>
             <input type="hidden" id="editProductId">
+            <input type="hidden" id="existingImgUrl">
             <div class="form-group">
                 <label>Ürün Adı</label>
                 <input type="text" id="prodName" placeholder="Örn: Saten Gecelik">
@@ -107,12 +108,12 @@
                 </select>
             </div>
             <div class="form-group">
-                <label>Görsel Bağlantısı (URL)</label>
-                <input type="text" id="prodImg" placeholder="https://...">
+                <label>Ürün Fotoğrafı Seç (Galeriden / Bilgisayardan)</label>
+                <input type="file" id="prodFile" accept="image/*">
             </div>
             <div class="modal-actions">
                 <button class="btn-cancel" onclick="closeModal()">İptal</button>
-                <button class="btn-save" onclick="saveProduct()">Kaydet</button>
+                <button class="btn-save" id="saveBtn" onclick="saveProduct()">Kaydet</button>
             </div>
         </div>
     </div>
@@ -132,8 +133,6 @@
             if (typeof supabase !== 'undefined') {
                 db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 fetchProducts();
-            } else {
-                console.error("Supabase kütüphanesi yüklenemedi.");
             }
         });
 
@@ -234,9 +233,10 @@
         function openModal() {
             document.getElementById('modalTitle').innerText = "Yeni Ürün Ekle";
             document.getElementById('editProductId').value = "";
+            document.getElementById('existingImgUrl').value = "";
             document.getElementById('prodName').value = "";
             document.getElementById('prodPrice').value = "";
-            document.getElementById('prodImg').value = "";
+            document.getElementById('prodFile').value = "";
             document.getElementById('adminModal').style.display = 'flex';
         }
 
@@ -247,19 +247,48 @@
             const name = document.getElementById('prodName').value;
             const price = parseFloat(document.getElementById('prodPrice').value);
             const cat = document.getElementById('prodCat').value;
-            const img = document.getElementById('prodImg').value;
+            const fileInput = document.getElementById('prodFile');
+            const saveBtn = document.getElementById('saveBtn');
 
             if (!name || isNaN(price)) {
                 alert("Ürün adı ve fiyat girmelisiniz.");
                 return;
             }
 
-            if (id) {
-                await db.from('products').update({ name, price, cat, img }).eq('id', id);
-            } else {
-                await db.from('products').insert([{ name, price, cat, img }]);
+            saveBtn.innerText = "Yükleniyor...";
+            saveBtn.disabled = true;
+
+            let imgUrl = document.getElementById('existingImgUrl').value;
+
+            // Fotoğraf Seçilmişse Supabase Storage'a Yükle
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${Date.now()}.${fileExt}`;
+
+                const { data: uploadData, error: uploadError } = await db.storage
+                    .from('product-images')
+                    .upload(fileName, file);
+
+                if (uploadError) {
+                    alert("Fotoğraf yükleme hatası: " + uploadError.message);
+                    saveBtn.innerText = "Kaydet";
+                    saveBtn.disabled = false;
+                    return;
+                }
+
+                const { data: urlData } = db.storage.from('product-images').getPublicUrl(fileName);
+                imgUrl = urlData.publicUrl;
             }
 
+            if (id) {
+                await db.from('products').update({ name, price, cat, img: imgUrl }).eq('id', id);
+            } else {
+                await db.from('products').insert([{ name, price, cat, img: imgUrl }]);
+            }
+
+            saveBtn.innerText = "Kaydet";
+            saveBtn.disabled = false;
             closeModal();
             fetchProducts();
         }
@@ -269,10 +298,11 @@
             if (prod) {
                 document.getElementById('modalTitle').innerText = "Ürünü Düzenle";
                 document.getElementById('editProductId').value = prod.id;
+                document.getElementById('existingImgUrl').value = prod.img || "";
                 document.getElementById('prodName').value = prod.name;
                 document.getElementById('prodPrice').value = prod.price;
                 document.getElementById('prodCat').value = prod.cat;
-                document.getElementById('prodImg').value = prod.img || "";
+                document.getElementById('prodFile').value = "";
                 document.getElementById('adminModal').style.display = 'flex';
             }
         }
