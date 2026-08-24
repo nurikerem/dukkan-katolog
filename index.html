@@ -8,49 +8,36 @@
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: #f8f9fa; color: #333; padding-bottom: 110px; }
-        
-        header { background: linear-gradient(135deg, #e91e63, #8e24aa); color: white; text-align: center; padding: 25px 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        header { background: linear-gradient(135deg, #e91e63, #8e24aa); color: white; text-align: center; padding: 25px 15px; }
         header h1 { font-size: 24px; margin-bottom: 5px; }
-        header p { font-size: 14px; opacity: 0.9; }
-
         .search-container { max-width: 800px; margin: 15px auto; padding: 0 15px; }
         .search-input { width: 100%; padding: 12px 18px; border: 2px solid #ddd; border-radius: 25px; font-size: 15px; outline: none; }
-        .search-input:focus { border-color: #e91e63; }
-
-        .categories { display: flex; overflow-x: auto; padding: 5px 15px 15px 15px; gap: 10px; max-width: 800px; margin: 0 auto; }
+        .categories { display: flex; overflow-x: auto; padding: 5px 15px 15px; gap: 10px; max-width: 800px; margin: 0 auto; }
         .cat-btn { padding: 8px 16px; background-color: white; border: 1px solid #ddd; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
         .cat-btn.active { background-color: #e91e63; color: white; border-color: #e91e63; }
-
         .container { max-width: 800px; margin: 0 auto; padding: 0 15px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
-
         .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); display: flex; flex-direction: column; justify-content: space-between; }
         .card img { width: 100%; height: 160px; object-fit: cover; background-color: #eee; }
         .card-body { padding: 12px; }
         .card-title { font-size: 14px; font-weight: 600; color: #222; margin-bottom: 6px; }
         .card-price { font-size: 16px; font-weight: bold; color: #e91e63; margin-bottom: 10px; }
-        
-        .btn-add { background-color: #25d366; color: white; border: none; width: 100%; padding: 8px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; }
-
+        .btn-add { background-color: #25d366; color: white; border: none; width: 100%; padding: 8px; border-radius: 6px; font-weight: 600; cursor: pointer; }
         .admin-controls { margin-top: 8px; display: flex; gap: 5px; }
         .btn-edit { background: #ff9800; color: white; border: none; padding: 5px; border-radius: 4px; font-size: 11px; cursor: pointer; flex: 1; }
         .btn-del { background: #f44336; color: white; border: none; padding: 5px; border-radius: 4px; font-size: 11px; cursor: pointer; flex: 1; }
-
         .cart-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #eee; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; max-width: 800px; margin: 0 auto; z-index: 100; }
         .cart-total { color: #e91e63; font-size: 16px; font-weight: bold; }
         .btn-order { background-color: #25d366; color: white; border: none; padding: 10px 20px; border-radius: 25px; font-weight: bold; cursor: pointer; }
-
-        .admin-toggle-btn { position: fixed; bottom: 75px; right: 15px; background: #333; color: white; border: none; padding: 10px 16px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; z-index: 101; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-        
+        .admin-toggle-btn { position: fixed; bottom: 75px; right: 15px; background: #333; color: white; border: none; padding: 10px 16px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; z-index: 101; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center; }
-        .modal-content { background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .modal-content { background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; }
         .form-group { margin-bottom: 12px; }
         .form-group label { display: block; font-size: 12px; margin-bottom: 4px; font-weight: 600; }
-        .form-group input, .form-group select { width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
+        .form-group input, .form-group select { width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; }
         .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px; }
         .btn-save { background: #e91e63; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; }
         .btn-cancel { background: #ccc; color: #333; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
-
         .empty-state { text-align: center; padding: 40px 20px; color: #777; grid-column: 1 / -1; }
     </style>
 </head>
@@ -140,24 +127,16 @@
         async function fetchProducts() {
             if (!db) return;
             const { data, error } = await db.from('products').select('*').order('id', { ascending: false });
-            if (!error) {
-                products = data || [];
-                renderProducts();
-            }
+            if (!error) { products = data || []; renderProducts(); }
         }
 
         function renderProducts() {
             const grid = document.getElementById('productGrid');
             const searchVal = document.getElementById('searchInput').value.toLowerCase();
-
-            const filtered = products.filter(p => {
-                const matchesCat = activeCategory === 'Hepsi' || p.cat === activeCategory;
-                const matchesSearch = p.name.toLowerCase().includes(searchVal) || p.cat.toLowerCase().includes(searchVal);
-                return matchesCat && matchesSearch;
-            });
+            const filtered = products.filter(p => (activeCategory === 'Hepsi' || p.cat === activeCategory) && (p.name.toLowerCase().includes(searchVal) || p.cat.toLowerCase().includes(searchVal)));
 
             if (filtered.length === 0) {
-                grid.innerHTML = '<div class="empty-state">Henüz ürün bulunmuyor. Sağ alttaki butonla ekleyebilirsiniz!</div>';
+                grid.innerHTML = '<div class="empty-state">Henüz ürün bulunmuyor.</div>';
                 return;
             }
 
@@ -168,12 +147,7 @@
                         <div class="card-title">${p.name}</div>
                         <div class="card-price">${p.price} TL</div>
                         <button class="btn-add" onclick="addToCart(${p.id})">🛒 Sepete Ekle</button>
-                        ${isAdmin ? `
-                            <div class="admin-controls">
-                                <button class="btn-edit" onclick="editProduct(${p.id})">✏️ Düzenle</button>
-                                <button class="btn-del" onclick="deleteProduct(${p.id})">🗑️ Sil</button>
-                            </div>
-                        ` : ''}
+                        ${isAdmin ? `<div class="admin-controls"><button class="btn-edit" onclick="editProduct(${p.id})">✏️ Düzenle</button><button class="btn-del" onclick="deleteProduct(${p.id})">🗑️ Sil</button></div>` : ''}
                     </div>
                 </div>
             `).join('');
@@ -186,11 +160,7 @@
         }
 
         function filterProducts() { renderProducts(); }
-
-        function addToCart(id) {
-            const prod = products.find(p => p.id === id);
-            if (prod) { cart.push(prod); updateCartUI(); }
-        }
+        function addToCart(id) { const prod = products.find(p => p.id === id); if (prod) { cart.push(prod); updateCartUI(); } }
 
         function updateCartUI() {
             const cartBar = document.getElementById('cartBar');
@@ -198,19 +168,14 @@
                 cartBar.style.display = 'flex';
                 document.getElementById('cartCount').innerText = cart.length;
                 document.getElementById('cartTotal').innerText = cart.reduce((sum, i) => sum + Number(i.price), 0) + ' TL';
-            } else {
-                cartBar.style.display = 'none';
-            }
+            } else { cartBar.style.display = 'none'; }
         }
 
         function sendWhatsAppOrder() {
             if (cart.length === 0) return;
             let text = "Merhaba, sipariş vermek istiyorum:\n\n";
             let total = 0;
-            cart.forEach((item, idx) => {
-                text += `${idx + 1}. ${item.name} - ${item.price} TL\n`;
-                total += Number(item.price);
-            });
+            cart.forEach((item, idx) => { text += `${idx + 1}. ${item.name} - ${item.price} TL\n`; total += Number(item.price); });
             text += `\n*Toplam:* ${total} TL`;
             window.open(`https://wa.me/905000000000?text=${encodeURIComponent(text)}`, '_blank');
         }
@@ -218,17 +183,9 @@
         function toggleAdminPanel() {
             if (!isAdmin) {
                 const pass = prompt("Yönetici Şifreniz:");
-                if (pass === ADMIN_PASSWORD) {
-                    isAdmin = true;
-                    alert("Yönetici girişi başarılı!");
-                    openModal();
-                    renderProducts();
-                } else if (pass !== null) {
-                    alert("Hatalı şifre!");
-                }
-            } else {
-                openModal();
-            }
+                if (pass === ADMIN_PASSWORD) { isAdmin = true; openModal(); renderProducts(); } 
+                else if (pass !== null) { alert("Hatalı şifre!"); }
+            } else { openModal(); }
         }
 
         function openModal() {
@@ -243,25 +200,6 @@
 
         function closeModal() { document.getElementById('adminModal').style.display = 'none'; }
 
-        function compressAndConvert(file) {
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = (e) => {
-                    const img = new Image();
-                    img.src = e.target.result;
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        let w = img.width, h = img.height;
-                        if (w > 400) { h = Math.round((h * 400) / w); w = 400; }
-                        canvas.width = w; canvas.height = h;
-                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                        resolve(canvas.toDataURL('image/jpeg', 0.6));
-                    };
-                };
-            });
-        }
-
         async function saveProduct() {
             const id = document.getElementById('editProductId').value;
             const name = document.getElementById('prodName').value;
@@ -270,18 +208,27 @@
             const fileInput = document.getElementById('prodFile');
             const saveBtn = document.getElementById('saveBtn');
 
-            if (!name || isNaN(price)) {
-                alert("Lütfen ürün adı ve geçerli bir fiyat girin.");
-                return;
-            }
+            if (!name || isNaN(price)) { alert("Lütfen ürün adı ve fiyat girin."); return; }
 
-            saveBtn.innerText = "Kaydediliyor...";
+            saveBtn.innerText = "Yükleniyor...";
             saveBtn.disabled = true;
 
             let imgUrl = document.getElementById('existingImgUrl').value;
 
             if (fileInput.files.length > 0) {
-                imgUrl = await compressAndConvert(fileInput.files[0]);
+                const file = fileInput.files[0];
+                const fileName = Date.now() + "_" + file.name.replace(/[^a-zA-Z0-9.]/g, "_");
+                
+                const { data, error: uploadError } = await db.storage.from('product-images').upload(fileName, file);
+
+                if (uploadError) {
+                    alert("Storage Yükleme Hatası: " + uploadError.message);
+                    saveBtn.innerText = "Kaydet"; saveBtn.disabled = false;
+                    return;
+                }
+
+                const { data: publicUrlData } = db.storage.from('product-images').getPublicUrl(fileName);
+                imgUrl = publicUrlData.publicUrl;
             }
 
             let dbError;
@@ -293,9 +240,7 @@
                 dbError = error;
             }
 
-            if (dbError) {
-                alert("Veritabanı Hatası: " + dbError.message);
-            }
+            if (dbError) { alert("Veritabanı Hatası: " + dbError.message); }
 
             saveBtn.innerText = "Kaydet";
             saveBtn.disabled = false;
