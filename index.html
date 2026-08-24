@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zümrüt İç Giyim & Çeyiz Katalog</title>
-    <!-- Supabase JS Client -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: #f8f9fa; color: #333; padding-bottom: 90px; }
@@ -15,43 +14,35 @@
         header p { font-size: 14px; opacity: 0.9; }
 
         .search-container { max-width: 800px; margin: 15px auto; padding: 0 15px; }
-        .search-input { width: 100%; padding: 12px 18px; border: 2px solid #ddd; border-radius: 25px; font-size: 15px; outline: none; transition: 0.3s; }
-        .search-input:focus { border-color: #e91e63; box-shadow: 0 0 8px rgba(233,30,99,0.2); }
+        .search-input { width: 100%; padding: 12px 18px; border: 2px solid #ddd; border-radius: 25px; font-size: 15px; outline: none; }
+        .search-input:focus { border-color: #e91e63; }
 
-        .categories { display: flex; overflow-x: auto; padding: 5px 15px 15px 15px; gap: 10px; justify-content: start; max-width: 800px; margin: 0 auto; scrollbar-width: none; }
-        .categories::-webkit-scrollbar { display: none; }
-        .cat-btn { padding: 8px 16px; background-color: white; border: 1px solid #ddd; border-radius: 20px; font-size: 13px; font-weight: 600; white-space: nowrap; cursor: pointer; transition: 0.2s; color: #555; }
-        .cat-btn.active, .cat-btn:hover { background-color: #e91e63; color: white; border-color: #e91e63; }
+        .categories { display: flex; overflow-x: auto; padding: 5px 15px 15px 15px; gap: 10px; max-width: 800px; margin: 0 auto; }
+        .cat-btn { padding: 8px 16px; background-color: white; border: 1px solid #ddd; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+        .cat-btn.active { background-color: #e91e63; color: white; border-color: #e91e63; }
 
         .container { max-width: 800px; margin: 0 auto; padding: 0 15px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
 
-        .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); transition: 0.3s; position: relative; display: flex; flex-direction: column; justify-content: space-between; }
-        .card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); display: flex; flex-direction: column; justify-content: space-between; }
         .card img { width: 100%; height: 160px; object-fit: cover; background-color: #eee; }
-        .card-body { padding: 12px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .card-body { padding: 12px; }
         .card-title { font-size: 14px; font-weight: 600; color: #222; margin-bottom: 6px; }
         .card-price { font-size: 16px; font-weight: bold; color: #e91e63; margin-bottom: 10px; }
         
-        .btn-add { background-color: #25d366; color: white; border: none; width: 100%; padding: 8px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; }
-        .btn-add:hover { background-color: #1ebd59; }
+        .btn-add { background-color: #25d366; color: white; border: none; width: 100%; padding: 8px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; }
 
-        /* Admin Kontrolleri */
         .admin-controls { margin-top: 8px; display: flex; gap: 5px; }
         .btn-edit { background: #ff9800; color: white; border: none; padding: 5px; border-radius: 4px; font-size: 11px; cursor: pointer; flex: 1; }
         .btn-del { background: #f44336; color: white; border: none; padding: 5px; border-radius: 4px; font-size: 11px; cursor: pointer; flex: 1; }
 
-        /* Sepet Bar */
-        .cart-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #eee; box-shadow: 0 -4px 15px rgba(0,0,0,0.1); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; max-width: 800px; margin: 0 auto; border-radius: 15px 15px 0 0; z-index: 100; }
-        .cart-info { font-size: 14px; font-weight: 600; }
+        .cart-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #eee; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; max-width: 800px; margin: 0 auto; z-index: 100; }
         .cart-total { color: #e91e63; font-size: 16px; font-weight: bold; }
-        .btn-order { background-color: #25d366; color: white; border: none; padding: 10px 20px; border-radius: 25px; font-weight: bold; font-size: 14px; cursor: pointer; text-decoration: none; display: flex; align-items: center; gap: 8px; }
+        .btn-order { background-color: #25d366; color: white; border: none; padding: 10px 20px; border-radius: 25px; font-weight: bold; cursor: pointer; }
 
-        /* Admin Giriş & Panel */
-        .admin-toggle-btn { position: fixed; bottom: 75px; right: 15px; background: #333; color: white; border: none; padding: 8px 14px; border-radius: 20px; font-size: 12px; cursor: pointer; z-index: 101; opacity: 0.8; }
+        .admin-toggle-btn { position: fixed; bottom: 75px; right: 15px; background: #333; color: white; border: none; padding: 8px 14px; border-radius: 20px; font-size: 12px; cursor: pointer; z-index: 101; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
         .modal-content { background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; }
-        .modal-content h3 { margin-bottom: 15px; color: #333; }
         .form-group { margin-bottom: 12px; }
         .form-group label { display: block; font-size: 12px; margin-bottom: 4px; font-weight: 600; }
         .form-group input, .form-group select { width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
@@ -59,7 +50,7 @@
         .btn-save { background: #e91e63; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; }
         .btn-cancel { background: #ccc; color: #333; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
 
-        .empty-state { text-align: center; padding: 40px 20px; color: #777; width: 100%; grid-column: 1 / -1; }
+        .empty-state { text-align: center; padding: 40px 20px; color: #777; grid-column: 1 / -1; }
     </style>
 </head>
 <body>
@@ -83,31 +74,24 @@
 
     <div class="container">
         <div class="grid" id="productGrid">
-            <div class="empty-state">Ürünler yükleniyor...</div>
+            <div class="empty-state">Henüz eklenmiş ürün yok.</div>
         </div>
     </div>
 
-    <!-- Sepet Alt Barı -->
     <div class="cart-bar" id="cartBar" style="display: none;">
-        <div class="cart-info">
-            <span id="cartCount">0</span> Ürün | <span class="cart-total" id="cartTotal">0 TL</span>
-        </div>
-        <button class="btn-order" onclick="sendWhatsAppOrder()">
-            📱 WhatsApp ile Sipariş Ver
-        </button>
+        <div><span id="cartCount">0</span> Ürün | <span class="cart-total" id="cartTotal">0 TL</span></div>
+        <button class="btn-order" onclick="sendWhatsAppOrder()">📱 WhatsApp ile Sipariş Ver</button>
     </div>
 
-    <!-- Yönetici Paneli Butonu -->
     <button class="admin-toggle-btn" onclick="toggleAdminPanel()">🔑 Yönetici / Ürün Ekle</button>
 
-    <!-- Ürün Ekleme / Düzenleme Modalı -->
     <div class="modal" id="adminModal">
         <div class="modal-content">
             <h3 id="modalTitle">Yeni Ürün Ekle</h3>
             <input type="hidden" id="editProductId">
             <div class="form-group">
                 <label>Ürün Adı</label>
-                <input type="text" id="prodName" placeholder="Örn: Saten Gecelik Takımı">
+                <input type="text" id="prodName" placeholder="Örn: Saten Gecelik">
             </div>
             <div class="form-group">
                 <label>Fiyat (TL)</label>
@@ -124,7 +108,7 @@
             </div>
             <div class="form-group">
                 <label>Görsel Bağlantısı (URL)</label>
-                <input type="text" id="prodImg" placeholder="https://... (boş kalabilir)">
+                <input type="text" id="prodImg" placeholder="https://...">
             </div>
             <div class="modal-actions">
                 <button class="btn-cancel" onclick="closeModal()">İptal</button>
@@ -134,40 +118,34 @@
     </div>
 
     <script>
-        // Supabase Bağlantı Bilgileri
         const SUPABASE_URL = "https://iwlysbmcjkhwpxkotnsz.supabase.co";
-        const SUPABASE_KEY = "sb_publishable_z7P_NGiXVLcLJxVTzxjiKA_8Su-pt8J"; // Supabase'deki Publishable Key'i buraya yapıştır
-        const ADMIN_PASSWORD = "1234"; // Ailenle kullanacağın yönetici şifresi
+        const SUPABASE_KEY = "sb_publishable_z7P_NGiXVLcLJxVTzxjiKA_8Su-pt8J"; 
+        const ADMIN_PASSWORD = "1234";
 
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
+        let db;
         let products = [];
         let cart = [];
         let activeCategory = 'Hepsi';
         let isAdmin = false;
 
-        // Sayfa yüklendiğinde verileri çek
-        window.onload = function() {
-            fetchProducts();
-        };
-
-        // Supabase'den ürünleri canlı çekme
-        async function fetchProducts() {
-            const { data, error } = await supabase
-                .from('products')
-                .select('*')
-                .order('id', { ascending: false });
-
-            if (error) {
-                console.error('Hata:', error);
-                document.getElementById('productGrid').innerHTML = '<div class="empty-state">Ürünler yüklenirken bir hata oluştu.</div>';
+        document.addEventListener("DOMContentLoaded", function() {
+            if (typeof supabase !== 'undefined') {
+                db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                fetchProducts();
             } else {
+                console.error("Supabase kütüphanesi yüklenemedi.");
+            }
+        });
+
+        async function fetchProducts() {
+            if (!db) return;
+            const { data, error } = await db.from('products').select('*').order('id', { ascending: false });
+            if (!error) {
                 products = data || [];
                 renderProducts();
             }
         }
 
-        // Ürünleri Listeleme
         function renderProducts() {
             const grid = document.getElementById('productGrid');
             const searchVal = document.getElementById('searchInput').value.toLowerCase();
@@ -179,7 +157,7 @@
             });
 
             if (filtered.length === 0) {
-                grid.innerHTML = '<div class="empty-state">Aradığınız kriterlere uygun ürün bulunamadı.</div>';
+                grid.innerHTML = '<div class="empty-state">Henüz ürün bulunmuyor. Sağ alttaki butonla ekleyebilirsiniz!</div>';
                 return;
             }
 
@@ -187,10 +165,8 @@
                 <div class="card">
                     <img src="${p.img || 'https://via.placeholder.com/300x300?text=G%C3%B6rsel+Yok'}" alt="${p.name}">
                     <div class="card-body">
-                        <div>
-                            <div class="card-title">${p.name}</div>
-                            <div class="card-price">${p.price} TL</div>
-                        </div>
+                        <div class="card-title">${p.name}</div>
+                        <div class="card-price">${p.price} TL</div>
                         <button class="btn-add" onclick="addToCart(${p.id})">🛒 Sepete Ekle</button>
                         ${isAdmin ? `
                             <div class="admin-controls">
@@ -203,26 +179,17 @@
             `).join('');
         }
 
-        // Kategori Değiştirme
         function setCategory(cat) {
             activeCategory = cat;
-            document.querySelectorAll('.cat-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.innerText === cat);
-            });
+            document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.toggle('active', btn.innerText === cat));
             renderProducts();
         }
 
-        function filterProducts() {
-            renderProducts();
-        }
+        function filterProducts() { renderProducts(); }
 
-        // Sepet İşlemleri
         function addToCart(id) {
             const prod = products.find(p => p.id === id);
-            if (prod) {
-                cart.push(prod);
-                updateCartUI();
-            }
+            if (prod) { cart.push(prod); updateCartUI(); }
         }
 
         function updateCartUI() {
@@ -230,8 +197,7 @@
             if (cart.length > 0) {
                 cartBar.style.display = 'flex';
                 document.getElementById('cartCount').innerText = cart.length;
-                const total = cart.reduce((sum, item) => sum + Number(item.price), 0);
-                document.getElementById('cartTotal').innerText = total + ' TL';
+                document.getElementById('cartTotal').innerText = cart.reduce((sum, i) => sum + Number(i.price), 0) + ' TL';
             } else {
                 cartBar.style.display = 'none';
             }
@@ -239,27 +205,24 @@
 
         function sendWhatsAppOrder() {
             if (cart.length === 0) return;
-            let text = "Merhaba, katalog sitenizden şu ürünleri sipariş vermek istiyorum:\n\n";
+            let text = "Merhaba, sipariş vermek istiyorum:\n\n";
             let total = 0;
             cart.forEach((item, idx) => {
                 text += `${idx + 1}. ${item.name} - ${item.price} TL\n`;
                 total += Number(item.price);
             });
-            text += `\n*Toplam Tutar:* ${total} TL`;
-            
-            // Dükkan WhatsApp Numarası (Gerekirse değiştirebilirsin)
-            const phone = "905000000000"; 
-            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank');
+            text += `\n*Toplam:* ${total} TL`;
+            window.open(`https://wa.me/905000000000?text=${encodeURIComponent(text)}`, '_blank');
         }
 
-        // Yönetici Panel İşlemleri
         function toggleAdminPanel() {
             if (!isAdmin) {
-                const pass = prompt("Yönetici Şifresini Giriniz:");
+                const pass = prompt("Yönetici Şifreniz:");
                 if (pass === ADMIN_PASSWORD) {
                     isAdmin = true;
-                    alert("Yönetici modu aktifleşti! Artık ürün ekleyebilir, silebilir ve fiyat değiştirebilirsiniz.");
+                    alert("Yönetici girişi başarılı!");
                     openModal();
+                    renderProducts();
                 } else if (pass !== null) {
                     alert("Hatalı şifre!");
                 }
@@ -277,9 +240,7 @@
             document.getElementById('adminModal').style.display = 'flex';
         }
 
-        function closeModal() {
-            document.getElementById('adminModal').style.display = 'none';
-        }
+        function closeModal() { document.getElementById('adminModal').style.display = 'none'; }
 
         async function saveProduct() {
             const id = document.getElementById('editProductId').value;
@@ -289,23 +250,14 @@
             const img = document.getElementById('prodImg').value;
 
             if (!name || isNaN(price)) {
-                alert("Lütfen geçerli bir ürün adı ve fiyatı giriniz.");
+                alert("Ürün adı ve fiyat girmelisiniz.");
                 return;
             }
 
             if (id) {
-                // Güncelleme
-                const { error } = await supabase
-                    .from('products')
-                    .update({ name, price, cat, img })
-                    .eq('id', id);
-                if (error) alert("Güncelleme hatası: " + error.message);
+                await db.from('products').update({ name, price, cat, img }).eq('id', id);
             } else {
-                // Yeni Ekleme
-                const { error } = await supabase
-                    .from('products')
-                    .insert([{ name, price, cat, img }]);
-                if (error) alert("Ekleme hatası: " + error.message);
+                await db.from('products').insert([{ name, price, cat, img }]);
             }
 
             closeModal();
@@ -326,13 +278,9 @@
         }
 
         async function deleteProduct(id) {
-            if (confirm("Bu ürünü silmek istediğinize emin misiniz?")) {
-                const { error } = await supabase
-                    .from('products')
-                    .delete()
-                    .eq('id', id);
-                if (error) alert("Silme hatası: " + error.message);
-                else fetchProducts();
+            if (confirm("Bu ürünü silmek istiyor musunuz?")) {
+                await db.from('products').delete().eq('id', id);
+                fetchProducts();
             }
         }
     </script>
