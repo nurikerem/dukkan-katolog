@@ -42,7 +42,6 @@
 
         .admin-toggle-btn { position: fixed; bottom: 75px; right: 15px; background: #333; color: white; border: none; padding: 10px 16px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; z-index: 101; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
         
-        /* Modal Ekranı */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center; }
         .modal-content { background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
         .form-group { margin-bottom: 12px; }
@@ -110,7 +109,7 @@
                 </select>
             </div>
             <div class="form-group">
-                <label>Ürün Fotoğrafı Seç (Galeriden / Bilgisayardan)</label>
+                <label>Ürün Fotoğrafı Seç</label>
                 <input type="file" id="prodFile" accept="image/*">
             </div>
             <div class="modal-actions">
@@ -264,27 +263,20 @@
 
             if (fileInput.files.length > 0) {
                 const file = fileInput.files[0];
-                const cleanFileName = `${Date.now()}_img.png`;
-
-                const { data: uploadData, error: uploadError } = await db.storage
-                    .from('product-images')
-                    .upload(cleanFileName, file, { 
-                        cacheControl: '3600', 
-                        upsert: true,
-                        contentType: file.type || 'image/png'
-                    });
-
-                if (uploadError) {
-                    alert("Görsel Yükleme Hatası: " + uploadError.message);
-                    saveBtn.innerText = "Kaydet";
-                    saveBtn.disabled = false;
-                    return;
-                }
-
-                const { data: urlData } = db.storage.from('product-images').getPublicUrl(cleanFileName);
-                imgUrl = urlData.publicUrl;
+                const reader = new FileReader();
+                
+                reader.onloadend = async function() {
+                    imgUrl = reader.result;
+                    await finishSave(id, name, price, cat, imgUrl, saveBtn);
+                };
+                
+                reader.readAsDataURL(file);
+            } else {
+                await finishSave(id, name, price, cat, imgUrl, saveBtn);
             }
+        }
 
+        async function finishSave(id, name, price, cat, imgUrl, saveBtn) {
             let dbError;
             if (id) {
                 const { error } = await db.from('products').update({ name, price, cat, img: imgUrl }).eq('id', id);
