@@ -200,6 +200,26 @@
 
         function closeModal() { document.getElementById('adminModal').style.display = 'none'; }
 
+        function compressImage(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let w = img.width, h = img.height;
+                        if (w > 250) { h = Math.round((h * 250) / w); w = 250; }
+                        canvas.width = w; canvas.height = h;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, w, h);
+                        resolve(canvas.toDataURL('image/jpeg', 0.3));
+                    };
+                };
+            });
+        }
+
         async function saveProduct() {
             const id = document.getElementById('editProductId').value;
             const name = document.getElementById('prodName').value;
@@ -210,25 +230,13 @@
 
             if (!name || isNaN(price)) { alert("Lütfen ürün adı ve fiyat girin."); return; }
 
-            saveBtn.innerText = "Yükleniyor...";
+            saveBtn.innerText = "Kaydediliyor...";
             saveBtn.disabled = true;
 
             let imgUrl = document.getElementById('existingImgUrl').value;
 
             if (fileInput.files.length > 0) {
-                const file = fileInput.files[0];
-                const fileName = Date.now() + "_" + file.name.replace(/[^a-zA-Z0-9.]/g, "_");
-                
-                const { data, error: uploadError } = await db.storage.from('product-images').upload(fileName, file);
-
-                if (uploadError) {
-                    alert("Storage Yükleme Hatası: " + uploadError.message);
-                    saveBtn.innerText = "Kaydet"; saveBtn.disabled = false;
-                    return;
-                }
-
-                const { data: publicUrlData } = db.storage.from('product-images').getPublicUrl(fileName);
-                imgUrl = publicUrlData.publicUrl;
+                imgUrl = await compressImage(fileInput.files[0]);
             }
 
             let dbError;
@@ -240,12 +248,15 @@
                 dbError = error;
             }
 
-            if (dbError) { alert("Veritabanı Hatası: " + dbError.message); }
+            if (dbError) { 
+                alert("Hata: " + dbError.message); 
+            } else {
+                closeModal();
+                fetchProducts();
+            }
 
             saveBtn.innerText = "Kaydet";
             saveBtn.disabled = false;
-            closeModal();
-            fetchProducts();
         }
 
         function editProduct(id) {
