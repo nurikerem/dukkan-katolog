@@ -74,7 +74,7 @@
 
     <div class="container">
         <div class="grid" id="productGrid">
-            <div class="empty-state">Henüz eklenmiş ürün yok.</div>
+            <div class="empty-state">Yükleniyor...</div>
         </div>
     </div>
 
@@ -301,3 +301,27 @@
             closeModal();
             fetchProducts();
         }
+
+        function editProduct(id) {
+            const prod = products.find(p => p.id === id);
+            if (prod) {
+                document.getElementById('modalTitle').innerText = "Ürünü Düzenle";
+                document.getElementById('editProductId').value = prod.id;
+                document.getElementById('existingImgUrl').value = prod.img || "";
+                document.getElementById('prodName').value = prod.name;
+                document.getElementById('prodPrice').value = prod.price;
+                document.getElementById('prodCat').value = prod.cat;
+                document.getElementById('prodFile').value = "";
+                document.getElementById('adminModal').style.display = 'flex';
+            }
+        }
+
+        async function deleteProduct(id) {
+            if (confirm("Bu ürünü silmek istiyor musunuz?")) {
+                await db.from('products').delete().eq('id', id);
+                fetchProducts();
+            }
+        }
+    </script>
+</body>
+</html>
