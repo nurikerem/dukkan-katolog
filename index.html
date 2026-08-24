@@ -77,7 +77,6 @@
         <div class="modal-content">
             <h3 id="modalTitle">Yeni Ürün Ekle</h3>
             <input type="hidden" id="editProductId">
-            <input type="hidden" id="existingImgUrl">
             <div class="form-group">
                 <label>Ürün Adı</label>
                 <input type="text" id="prodName" placeholder="Örn: Saten Gecelik">
@@ -96,8 +95,8 @@
                 </select>
             </div>
             <div class="form-group">
-                <label>Ürün Fotoğrafı Seç</label>
-                <input type="file" id="prodFile" accept="image/*">
+                <label>Fotoğraf Bağlantısı / URL (Opsiyonel)</label>
+                <input type="text" id="prodImgUrl" placeholder="https://... (Boş bırakabilirsiniz)">
             </div>
             <div class="modal-actions">
                 <button class="btn-cancel" onclick="closeModal()">İptal</button>
@@ -142,7 +141,7 @@
 
             grid.innerHTML = filtered.map(p => `
                 <div class="card">
-                    <img src="${p.img || 'https://via.placeholder.com/300x300?text=G%C3%B6rsel+Yok'}" alt="${p.name}">
+                    <img src="${p.img || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400'}" alt="${p.name}">
                     <div class="card-body">
                         <div class="card-title">${p.name}</div>
                         <div class="card-price">${p.price} TL</div>
@@ -191,53 +190,26 @@
         function openModal() {
             document.getElementById('modalTitle').innerText = "Yeni Ürün Ekle";
             document.getElementById('editProductId').value = "";
-            document.getElementById('existingImgUrl').value = "";
             document.getElementById('prodName').value = "";
             document.getElementById('prodPrice').value = "";
-            document.getElementById('prodFile').value = "";
+            document.getElementById('prodImgUrl').value = "";
             document.getElementById('adminModal').style.display = 'flex';
         }
 
         function closeModal() { document.getElementById('adminModal').style.display = 'none'; }
-
-        function compressImage(file) {
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = (e) => {
-                    const img = new Image();
-                    img.src = e.target.result;
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        let w = img.width, h = img.height;
-                        if (w > 250) { h = Math.round((h * 250) / w); w = 250; }
-                        canvas.width = w; canvas.height = h;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, w, h);
-                        resolve(canvas.toDataURL('image/jpeg', 0.3));
-                    };
-                };
-            });
-        }
 
         async function saveProduct() {
             const id = document.getElementById('editProductId').value;
             const name = document.getElementById('prodName').value;
             const price = parseFloat(document.getElementById('prodPrice').value);
             const cat = document.getElementById('prodCat').value;
-            const fileInput = document.getElementById('prodFile');
+            const imgUrl = document.getElementById('prodImgUrl').value.trim();
             const saveBtn = document.getElementById('saveBtn');
 
             if (!name || isNaN(price)) { alert("Lütfen ürün adı ve fiyat girin."); return; }
 
             saveBtn.innerText = "Kaydediliyor...";
             saveBtn.disabled = true;
-
-            let imgUrl = document.getElementById('existingImgUrl').value;
-
-            if (fileInput.files.length > 0) {
-                imgUrl = await compressImage(fileInput.files[0]);
-            }
 
             let dbError;
             if (id) {
@@ -264,11 +236,10 @@
             if (prod) {
                 document.getElementById('modalTitle').innerText = "Ürünü Düzenle";
                 document.getElementById('editProductId').value = prod.id;
-                document.getElementById('existingImgUrl').value = prod.img || "";
                 document.getElementById('prodName').value = prod.name;
                 document.getElementById('prodPrice').value = prod.price;
                 document.getElementById('prodCat').value = prod.cat;
-                document.getElementById('prodFile').value = "";
+                document.getElementById('prodImgUrl').value = prod.img || "";
                 document.getElementById('adminModal').style.display = 'flex';
             }
         }
